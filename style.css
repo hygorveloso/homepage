@@ -1,0 +1,94 @@
+/* tags, IDs e Classes - sao os seletores*/
+
+/* Tag */
+p {
+    font-size: 16 px;
+}
+
+h1 {
+    color: orange;
+}
+
+/* ID */
+#primeiro-paragrafo,
+#segundo-paragrafo,
+#terceiro-paragrafo {
+    font-size: 24 px;
+}
+
+/* Classe */
+.paragrafo-bloco1 {
+    font-size: 24px;
+}
+
+.paragrafo-bloco2 {
+    font-size: 24px;
+    color: red;
+}
+
+.layout-fundo {
+    background-color: rgb(198, 198, 201);
+    margin: 0;
+    height: 100%;
+}
+
+.primeiro-bloco {
+    background-color: rgb(90, 90, 156);
+    overflow: visible;
+    justify-content: flex-start;
+    border-radius: 0px;
+    -moz-border-radius: 0px;
+    opacity: 1;
+    align-self: center;
+    min-width: 0px;
+    order: 2;
+    min-height: 0px;
+    height: max-content;
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: calc(100% - 0px);
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+}
+
+.cabecalho {
+    column-count: 3;
+    color: rgb(30, 90, 143);
+    margin: 0;
+    margin-top: 0%;
+    width: 98%;
+    height: 10px;
+  }
+
+.container {
+        display: flex;
+        gap: 10px; /* Espaçamento entre as divs */
+        background-color: lightgray; /* Apenas para visualização */
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: rgb(198, 198, 201);
+        height: 100%;
+    }
+
+.cabecalho-acoes {
+    text-align: right;
+    color: rgb(17, 16, 16);
+    column-count: 4;
+    position: relative;
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+}
+    
+.corpo-pagina{
+    text-align: right;
+    background-color: black;
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+}
+   
