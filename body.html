@@ -1,0 +1,151 @@
+<header class="band">
+ <div class="wrap">
+  <div class="bar1">
+   <div class="brand"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><path d="M3 19 9 12l5 4 9-10" stroke="#f2c500" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Protótipo de painel</b><span class="org">Independente, sem vínculo oficial</span></div>
+  </div>
+  <div class="bar2">
+   <span id="stamp">Carregando dados…</span>
+   <button id="theme" class="ghost" type="button" aria-pressed="false">Tema escuro</button>
+  </div>
+  <div class="hrow">
+   <div class="ttl"><h1>Estrada<br>Boa Rural</h1><p>Projetos, valores e execução dos convênios</p></div>
+   <div class="hero">
+    <div class="hnum"><small>R$</small><span id="hv" data-count="0" data-dec="2">0,00</span><small id="hu">Bi</small></div>
+    <div class="hlab">Valor planejado</div>
+   </div>
+   <div class="flow" role="group" aria-label="Do valor planejado ao aportado">
+    <div class="fr"><span class="fn">Planejado</span><div class="ft"><i class="fill" id="w1" style="--w:100%"></i></div><b class="fv" id="v1"></b></div>
+    <div class="fr"><span class="fn">Conveniado</span><div class="ft"><i class="fill" id="w2" style="--w:0%"></i></div><b class="fv" id="v2"></b></div>
+    <div class="fr"><span class="fn">Aportado</span><div class="ft"><i class="fill" id="w3" style="--w:0%"></i></div><b class="fv" id="v3"></b></div>
+   </div>
+  </div>
+ </div>
+ <div class="line" aria-hidden="true"></div>
+</header>
+
+<main class="wrap">
+ <section class="filters" aria-label="Filtros">
+  <label>Município<select id="fm"></select></label>
+  <label>Financiamento<select id="ff"></select></label>
+  <label>Situação do projeto<select id="fs"></select></label>
+  <label>Nome do projeto<select id="fn"></select></label>
+  <label>Associação municipal<select id="fa"></select></label>
+  <label>Região<select id="fr"></select></label>
+  <label>Equipe do projeto<select id="fe"></select></label>
+  <label>Função na equipe<select id="fu"></select></label>
+  <label>Municípios com +1 projeto<select id="fx"></select></label>
+  <button id="clear" class="ghost" type="button">Limpar filtros</button>
+  <p class="hint">Cada filtro mostra só as opções que existem com os outros filtros aplicados. Clicar num município do mapa também filtra. Financiamento só é conhecido para projetos com aporte; <span class="aw">Aguardando fonte</span> para os demais.</p>
+ </section>
+
+ <section class="kpis" aria-label="Indicadores">
+  <div class="kpi">
+   <div class="kl">Projetos</div>
+   <div class="kv"><span id="kp" data-count="0">0</span></div>
+   <div class="split" id="kps" role="img" aria-label="Projetos por financiador"></div>
+   <div class="kr"><span><i class="sw" style="background:var(--s2)"></i>BRDE (com aporte)</span><b id="kpb">0</b></div>
+   <div class="kr"><span><i class="sw" style="background:var(--s5)"></i>BADESC (com aporte)</span><b id="kpd">0</b></div>
+   <div class="kr" id="krx" hidden><span><i class="sw" style="background:var(--s1)"></i>BRDE e BADESC</span><b id="kpx">0</b></div>
+   <div class="kr pend"><span><i class="sw" style="background:var(--hair)"></i>Sem financiador</span><b id="kpn">0</b></div>
+  </div>
+  <div class="kpi">
+   <div class="kl">Municípios</div>
+   <div class="kv"><span id="km" data-count="0">0</span></div>
+   <div class="mt" id="kmm" role="img" aria-label="Municípios com mais de um projeto"><i class="fill" id="kmf" style="--w:0%"></i></div>
+   <div class="kr"><span>Com mais de 1 projeto</span><b id="km1">0</b></div>
+   <div class="kr"><span>Participação</span><b id="kmp">0%</b></div>
+  </div>
+  <div class="kpi">
+   <div class="kl">Valor aportado</div>
+   <div class="kv"><small style="margin:0 5px 0 0">R$</small><span id="ka" data-count="0" data-dec="2">0,00</span><small id="kau">Mi</small></div>
+   <div class="mb"><span>BRDE</span><div class="tr"><i id="kab" style="--w:0%;background:var(--s2)"></i></div><b id="kabv"></b></div>
+   <div class="mb"><span>BADESC</span><div class="tr"><i id="kad" style="--w:0%;background:var(--s5)"></i></div><b id="kadv"></b></div>
+   <div class="mb" title="Diferença entre o valor aportado e a soma de BRDE e BADESC. A origem não consta nas planilhas."><span>Não informada</span><div class="tr"><i id="kao" style="--w:0%;background:var(--axis)"></i></div><b id="kaov"></b></div>
+  </div>
+  <div class="kpi">
+   <div class="kl">Km planejado <span class="aw">Aguardando fonte</span></div>
+   <div class="kv pendv">—</div>
+   <div class="mt" role="img" aria-label="Km executados: aguardando fonte"><i class="fill skel" style="--w:100%"></i></div>
+   <div class="kr pend"><span>Km executado</span><b>aguardando fonte</b></div>
+   <div class="kr pend"><span>% do planejado executado</span><b>aguardando fonte</b></div>
+  </div>
+ </section>
+
+ <div class="grid">
+  <section class="pn c7" aria-labelledby="tMap">
+   <div class="ph"><div><h2 id="tMap">Projetos por município</h2><p>Municípios em amarelo têm projeto. O tamanho do ponto mostra a quantidade de projetos. Clique para filtrar. Km por município: <span class="aw">Aguardando fonte</span></p></div></div>
+   <div class="mapbox"><svg id="map" viewBox="0 0 640 450" role="img" aria-label="Mapa de Santa Catarina com os municípios que têm projeto"><g id="mg"></g><g id="bg"></g></svg></div>
+   <p class="note" id="mapnote">Carregando mapa…</p>
+   <p class="mapwarn" id="mapwarn" hidden></p>
+   <div class="chips" id="chips" aria-label="Municípios do filtro atual"></div>
+  </section>
+
+  <section class="pn c5" id="pFont" aria-labelledby="tFont">
+   <div class="ph"><div><h2 id="tFont">Fontes de recurso</h2><p>Valores em R$ milhões, conforme os filtros.</p></div><button class="tg" type="button" aria-pressed="false" data-t="pFont">Tabela</button></div>
+   <div class="view-c">
+    <h3 class="sh">Valor aportado por origem</h3>
+    <div class="sb" id="sb" role="img" aria-label="Participação de cada origem no valor aportado"></div>
+    <div class="ls" id="ls"></div>
+    <h3 class="sh s2">Planejado x pago por fonte <span class="aw">Aguardando fonte</span></h3>
+    <p class="nota">Falta uma tabela com projeto, fonte de recurso, valor planejado e valor pago. Com ela este gráfico passa a responder aos filtros.</p>
+    <div class="bl" id="bl"></div>
+   </div>
+   <div class="view-t" hidden></div>
+  </section>
+
+  <section class="pn c12" id="pEt" aria-labelledby="tEt">
+   <div class="ph"><div><h2 id="tEt">Jornada dos projetos <span class="aw">Aguardando fonte</span></h2><p>Falta uma tabela com a etapa em que cada projeto está. As nove etapas abaixo seguem o painel original e vão mostrar a quantidade de projetos em cada uma.</p></div></div>
+   <div class="rt"><ol class="route" id="route"></ol></div>
+  </section>
+
+  <section class="pn c12" aria-labelledby="tTab">
+   <div class="ph">
+    <div><h2 id="tTab">Projetos</h2><p class="cnt" id="cnt"></p></div>
+    <div class="tools"><input class="search" id="q" type="search" placeholder="Buscar por projeto, município ou código" aria-label="Buscar projetos"></div>
+   </div>
+   <div class="tw">
+    <table>
+     <caption class="sr">Lista de projetos</caption>
+     <thead><tr>
+      <th data-k="id">Código</th>
+      <th data-k="nome">Projeto</th>
+      <th data-k="mun">Município</th>
+      <th data-k="assoc">Associação</th>
+      <th data-k="regiao">Região</th>
+      <th data-k="fin">Financiamento</th>
+      <th data-k="sit">Situação atual</th>
+      <th class="n" data-k="plan">Planejado (R$)</th>
+      <th class="n" data-k="conv">Conveniado (R$)</th>
+      <th class="n" data-k="apor">Aportado (R$)</th>
+      <th class="n">Km planejados<em>aguardando fonte</em></th>
+      <th class="n">Km pavimentados<em>aguardando fonte</em></th>
+      <th class="n">Executado (R$)<em>aguardando fonte</em></th>
+      <th>SGPe<em>aguardando fonte</em></th>
+      <th>Link<em>aguardando fonte</em></th>
+     </tr></thead>
+     <tbody id="tb"></tbody>
+     <tfoot id="tf"></tfoot>
+    </table>
+   </div>
+  </section>
+ </div>
+
+ <footer class="foot">
+  <details class="dq">
+   <summary>Qualidade dos dados e itens pendentes</summary>
+   <h4>Aguardando fonte</h4>
+   <ul>
+    <li>Financiador dos projetos que ainda não têm aporte.</li>
+    <li>Km planejados e km pavimentados, valor executado, número do processo (SGPe) e link.</li>
+    <li>Etapa em que cada projeto está (jornada).</li>
+    <li>Valor planejado e valor pago por fonte de recurso, por projeto.</li>
+    <li>Código IBGE do município. Hoje o mapa liga pelo nome, ignorando acentos.</li>
+   </ul>
+   <h4>Avisos da última carga</h4>
+   <ul id="avisos"></ul>
+  </details>
+  <span id="fonte">Fonte: planilhas exportadas. Protótipo independente, sem vínculo oficial.</span>
+ </footer>
+</main>
+
+<script id="dados" type="application/json">__DADOS__</script>
