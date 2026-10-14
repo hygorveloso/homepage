@@ -52,6 +52,8 @@ f2, t2 = ler("tabela2")  # equipe
 f3, t3 = ler("tabela3")  # valores
 f4, t4 = ler_cod("tabela4", "CODIGO_PROJETO")  # financiamento, km, situação atual, SGPe, link
 
+f6, t6 = ler("tabela6")  # planejado e pago por fonte de recurso
+
 avisos = []
 
 # --- Validações de estrutura (falha cedo, não publica dado quebrado) ---
@@ -99,6 +101,27 @@ for c in ["VALOR_PLANEJADO", "Valor Conveniado", "Valor aportado", "Aportado - B
     t3[c] = num(t3[c])
 t3 = t3.set_index("Cod. Projeto")
 
+# --- Fontes de recurso (tabela6): uma linha por projeto e fonte ---
+falt6 = [c for c in ["Cod. Projeto", "Fonte de Recursos", "Valor Planejado", "Valor Total Pago"] if c not in t6.columns]
+if falt6:
+    sys.exit(f"ERRO: tabela6 sem as colunas {falt6}")
+t6["Fonte de Recursos"] = t6["Fonte de Recursos"].fillna("").str.strip()  # há " Recursos Municipais" com espaço
+t6 = t6[t6["Cod. Projeto"].isin(ids) & (t6["Fonte de Recursos"] != "")].copy()
+for c in ["Valor Planejado", "Valor Total Pago"]:
+    t6[c] = num(t6[c])
+if t6.duplicated(["Cod. Projeto", "Fonte de Recursos"]).any():
+    sys.exit("ERRO: projeto e fonte duplicados na tabela6")
+FONTES_OK = {"Recursos Estaduais", "Financiamento BRDE", "Recursos Municipais", "Bens/Serviços", "Financiamento BADESC"}
+outras = sorted(set(t6["Fonte de Recursos"]) - FONTES_OK)
+if outras:
+    avisos.append(f"fontes na tabela6 fora das 5 do painel (ignoradas no gráfico): {outras}")
+fontes = {}
+for _, r in t6.iterrows():
+    fontes.setdefault(r["Cod. Projeto"], {})[r["Fonte de Recursos"]] = [round(float(r["Valor Planejado"]), 2), round(float(r["Valor Total Pago"]), 2)]
+sem_fonte = ids - set(fontes)
+if sem_fonte:
+    avisos.append(f"{len(sem_fonte)} projetos sem linha na tabela6")
+
 # --- Projetos ---
 projetos = []
 for _, r in t1.iterrows():
@@ -142,6 +165,7 @@ for _, r in t1.iterrows():
         "sit_atual": ((q["Situação Atual"] if q is not None else "") or "").strip(),
         "sgpe": ((q["SGPe"] if q is not None else "") or "").strip(),
         "link": link,
+        "fontes": fontes.get(cod, {}),
     })
 
 equipe = [
@@ -174,7 +198,7 @@ if sem_gestor:
 saida = {
     "meta": {
         "gerado_em": datetime.now().astimezone().isoformat(timespec="minutes"),
-        "arquivos": [f1.name, f2.name, f3.name, f4.name],
+        "arquivos": [f1.name, f2.name, f3.name, f4.name, f6.name],
         "totais_conferencia": tot,
         "avisos": avisos,
     },
