@@ -183,6 +183,7 @@ html:not(.ready) .mt .fill,html:not(.ready) .mb .tr i{width:0}
 .stg .bar{display:block;width:22px;background:var(--green);border-radius:4px 4px 0 0}
 .stg .val{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
 .stg .dot{position:relative;z-index:1;align-self:center;width:24px;height:24px;border-radius:50%;background:var(--surf);border:2px solid var(--green);display:grid;place-items:center;font-size:11.5px;font-weight:700}
+.stg.vazio .val{color:var(--mut);font-weight:500}.stg.vazio .dot{border-color:var(--axis);color:var(--mut)}.stg.vazio .nm{color:var(--mut)}.stg.vazio:hover{background:none}
 .stg .nm{font-size:12.5px;line-height:1.3;text-align:center;margin-top:9px;max-width:118px}
 
 /* tabela de projetos */
@@ -426,7 +427,7 @@ td a.lnk{text-decoration:none}
   </section>
 
   <section class="pn c12" id="pEt" aria-labelledby="tEt">
-   <div class="ph"><div><h2 id="tEt">Jornada dos projetos <span class="aw">Estimado</span></h2><p>Quantos projetos já chegaram a cada etapa, conforme os filtros. Estimativa: cada projeto é colocado na etapa indicada pela sua situação atual, e conta como tendo passado pelas anteriores.</p></div></div>
+   <div class="ph"><div><h2 id="tEt">Jornada dos projetos <span class="aw">Estimado</span></h2><p>Quantos projetos já chegaram a cada etapa, conforme os filtros. Estimativa: cada projeto é colocado na etapa indicada pela sua situação atual, e conta como tendo passado pelas anteriores. Etapas sem informação ficam em branco.</p></div></div>
    <div class="rt"><ol class="route" id="route"></ol></div>
    <p class="note" id="etnota"></p>
   </section>
@@ -517,6 +518,7 @@ const FIN={BRDE:"var(--s2)",Badesc:"var(--s5)","Sem financiamento":"var(--axis)"
 const ETAPAS=["Solicitação do convênio simplificado","Análise da elegibilidade da proposta (SIE)","Análise técnica do projeto (BRDE ou BADESC)","Publicação da portaria do convênio","Homologação da licitação da obra","Assinatura do convênio simplificado","Aporte da contrapartida do município","Aporte dos recursos estaduais","Inauguração","Prestação de contas"];
 /* Estimativa provisória: etapa em que o projeto está, deduzida do texto da situação atual. Trocar pela tabela5 com status por entrega. */
 const ETAPA_SIT=[["análise da elegibilidade",2],["análise técnica do projeto de engenharia",3],["homologação do parecer técnico",3],["adequação da documentação",4],["autorizado a licitar",5],["trâmites administrativos para repasse",8],["repasse da 1ª parcela",8],["repasse da 2ª parcela",8]];
+const SEM_DADO=[6,7,9,10]; /* sem informação na situação atual: ficam em branco */
 const etapaDe=t=>{t=(t||"").toLowerCase();const m=ETAPA_SIT.find(([k])=>t.includes(k));return m?m[1]:0};
 const FONTES=[["Recursos Estaduais","var(--s1)"],["Financiamento BRDE","var(--s2)"],["Recursos Municipais","var(--s3)"],["Bens/Serviços","var(--s4)"],["Financiamento BADESC","var(--s5)"]];
 
@@ -690,6 +692,7 @@ function renderJornada(r){
   const sem=cur.filter(c=>!c).length;
   ETAPAS.forEach((nome,i)=>{
     const e=i+1,chegou=cur.filter(c=>c>=e).length,agora=cur.filter(c=>c===e).length;
+    if(SEM_DADO.includes(e)){const v=el("li","stg vazio"),c=el("div","col");c.append(el("b","val","—"));v.append(c,el("span","dot",String(e)),el("span","nm",nome));ol.append(v);return}
     const li=el("li","stg"),col=el("div","col"),bar=el("i","bar");bar.style.height=Math.round(pct(chegou,Math.max(1,n))*1.2)+"px";
     col.append(el("b","val",pt(chegou)),bar);
     li.append(col,el("span","dot",String(e)),el("span","nm",nome));li.tabIndex=0;
