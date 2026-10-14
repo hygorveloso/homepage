@@ -1,12 +1,13 @@
 Painel Estrada Boa Rural - como atualizar os dados
 
-1) Exporte as 3 planilhas (cadastro, equipe, valores) e coloque na pasta entrada/ (nomes terminando em tabela1/2/3.xlsx).
+1) Exporte as 4 planilhas (tabela1 cadastro, tabela2 equipe, tabela3 valores, tabela4 projetos/km/situação/SGPe) e coloque na pasta entrada/ (nomes contendo tabela1, tabela2, tabela3 e tabela4).
 2) python3 etl.py entrada dados.json     -> lê as planilhas, valida e gera dados.json
 3) python3 build.py                      -> gera painel.html (arquivo único, abre no navegador)
 
 Trocar planilha por banco: reescreva só o etl.py para ler do banco e gravar o mesmo dados.json.
 O painel não depende de onde o dados.json veio.
 
-Pendente (aguardando fonte): financiador de projetos sem aporte, km, valor executado, SGPe/link,
-etapa do projeto, planejado e pago por fonte, código IBGE do município.
+Pendente (aguardando fonte): etapas pelas quais cada projeto já passou (jornada), valor planejado e pago
+por fonte de recurso, código IBGE do município.
+A confirmar: km executado usa o km pavimentado; valor executado é igual ao valor aportado em todos os projetos.
 Atenção: dados.json contém nomes de pessoas da equipe. Definir com a TI/LGPD antes de publicar.

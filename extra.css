@@ -54,3 +54,18 @@ tbody tr:last-child td{border-bottom:0}
 .dq ul{margin:10px 0 0;padding-left:20px;display:grid;gap:4px;max-width:90ch}
 .dq h4{margin:14px 0 0;font-size:13px;color:var(--ink)}
 .mt .fill.skel{background:repeating-linear-gradient(135deg,var(--hair) 0 6px,transparent 6px 12px);border-radius:5px}
+
+/* situação atual (barras clicáveis) */
+.sitlist{display:grid;gap:2px}
+.sitrow{display:grid;grid-template-columns:minmax(200px,440px) minmax(0,1fr) 110px;gap:16px;align-items:center;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:8px 10px;margin:0 -10px;color:var(--ink);font-size:13.5px;width:calc(100% + 20px)}
+.sitrow:hover,.sitrow.sel{background:var(--surf2)}
+.sitrow .tx{min-width:0;line-height:1.3}
+.sitrow.sel .tx{font-weight:600}
+.sitrow .tk{height:14px;background:var(--hair);border-radius:0 4px 4px 0;overflow:hidden}
+.sitrow .tk i{display:block;height:100%;background:var(--green);border-radius:0 4px 4px 0;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.sitrow .nv{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sitrow .nv b{font-weight:600}
+.sitrow .nv span{color:var(--ink2);margin-left:8px}
+@media (max-width:620px){.sitrow{grid-template-columns:minmax(0,1fr) auto}.sitrow .tk{grid-column:1/-1;order:3}}
+td.sit{max-width:300px;overflow:hidden;text-overflow:ellipsis}
+td a.lnk{text-decoration:none}

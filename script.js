@@ -14,10 +14,10 @@ const brlFull=v=>pt(v,2);
 const D=JSON.parse($("dados").textContent);
 const P=D.projetos,EQ=D.equipe;
 const EQ_POR_ID={};EQ.forEach(e=>(EQ_POR_ID[e.id]=EQ_POR_ID[e.id]||[]).push(e));
-const SEM="Sem financiador informado";
+const SEM="Sem financiamento";
 const finDe=p=>p.fin||SEM;
 const NMUN={};P.forEach(p=>{NMUN[p.mun]=(NMUN[p.mun]||0)+1});
-const FIN={BRDE:"var(--s2)",Badesc:"var(--s5)","BRDE e Badesc":"var(--s1)"};
+const FIN={BRDE:"var(--s2)",Badesc:"var(--s5)","Sem financiamento":"var(--axis)"};
 const ETAPAS=["Solicitação Convênio Simplificado","Análise da elegibilidade da proposta","Análise técnica do projeto – BRDE","Análise técnica do projeto – BADESC","Publicação Portaria do Convênio Simplificado","Homologação da licitação da obra","Assinatura do Convênio Simplificado","Aporte Contrapartida Município","Aporte Recursos Estaduais"];
 const FONTES=[["Recursos Estaduais","var(--s1)"],["Financiamento BRDE","var(--s2)"],["Recursos Municipais","var(--s3)"],["Bens/Serviços","var(--s4)"],["Financiamento BADESC","var(--s5)"]];
 
@@ -45,10 +45,10 @@ function bindTip(n,title,rows,on){
 }
 
 /* ---------- Filtros: um estado, uma função de filtragem, tudo derivado dela ---------- */
-const F={m:"",f:"",s:"",n:"",a:"",r:"",e:"",u:"",x:"",q:""};
+const F={m:"",f:"",s:"",z:"",n:"",a:"",r:"",e:"",u:"",x:"",q:""};
 const ROT={x:["Todos","Sim"]};
 const SIMPLES=[ /* chave, id do select, rótulo do "todos", valor do projeto */
-  ["m","fm","Todos",p=>p.mun],["f","ff","Todos",finDe],["s","fs","Todas",p=>p.sit],["n","fn","Todos",p=>p.nome],
+  ["m","fm","Todos",p=>p.mun],["f","ff","Todos",finDe],["s","fs","Todas",p=>p.sit],["z","fz","Todas",p=>p.sit_atual],["n","fn","Todos",p=>p.nome],
   ["a","fa","Todas",p=>p.assoc],["r","fr","Todas",p=>p.regiao]];
 function equipeOk(p){
   if(!F.e&&!F.u)return true;
@@ -61,7 +61,7 @@ function ok(p,skip){
   if(skip==="e"&&F.u&&!(EQ_POR_ID[p.id]||[]).some(q=>q.funcao===F.u))return false;
   if(skip==="u"&&F.e&&!(EQ_POR_ID[p.id]||[]).some(q=>q.pessoa===F.e))return false;
   if(skip!=="x"&&F.x==="Sim"&&NMUN[p.mun]<2)return false;
-  if(skip!=="q"&&F.q&&!(p.nome+" "+p.mun+" "+p.id).toLowerCase().includes(F.q))return false;
+  if(skip!=="q"&&F.q&&!(p.nome+" "+p.mun+" "+p.id+" "+(p.sgpe||"")).toLowerCase().includes(F.q))return false;
   return true;
 }
 const ordena=a=>[...a].sort((x,y)=>x.localeCompare(y,"pt-BR"));
@@ -111,11 +111,11 @@ function renderTopo(r){
   $("v3").replaceChildren(document.createTextNode(brl(apor)),el("em","",pt(pct(apor,plan),1)+"%"));
   setW("w2",pct(conv,plan));setW("w3",pct(apor,plan));
 
-  const n=r.length,nb=r.filter(p=>p.fin==="BRDE").length,nd=r.filter(p=>p.fin==="Badesc").length,nx=r.filter(p=>p.fin==="BRDE e Badesc").length,nn=n-nb-nd-nx;
-  setNum("kp",n);$("kpb").textContent=nb;$("kpd").textContent=nd;$("kpn").textContent=nn;$("kpx").textContent=nx;$("krx").hidden=!nx;
+  const n=r.length,nb=r.filter(p=>p.fin==="BRDE").length,nd=r.filter(p=>p.fin==="Badesc").length,nn=n-nb-nd;
+  setNum("kp",n);$("kpb").textContent=nb;$("kpd").textContent=nd;$("kpn").textContent=nn;
   const sp=$("kps");sp.replaceChildren();
-  [[nb,"var(--s2)"],[nd,"var(--s5)"],[nx,"var(--s1)"],[nn,"var(--axis)"]].forEach(([c,col])=>{if(c){const i=el("i");i.style.width=pct(c,n)+"%";i.style.background=col;sp.append(i)}});
-  sp.setAttribute("aria-label",`${nb} projetos BRDE, ${nd} BADESC, ${nn} sem financiador informado`);
+  [[nb,"var(--s2)"],[nd,"var(--s5)"],[nn,"var(--axis)"]].forEach(([c,col])=>{if(c){const i=el("i");i.style.width=pct(c,n)+"%";i.style.background=col;sp.append(i)}});
+  sp.setAttribute("aria-label",`${nb} projetos BRDE, ${nd} BADESC, ${nn} sem financiamento`);
 
   const mun=new Set(r.map(p=>p.mun)),cm={};r.forEach(p=>cm[p.mun]=(cm[p.mun]||0)+1);
   const m1=Object.values(cm).filter(c=>c>1).length;
@@ -123,6 +123,9 @@ function renderTopo(r){
 
   const ma=money(apor);setNum("ka",ma.n,2);$("kau").textContent=ma.u;
   [["kab","kabv",ar],["kad","kadv",ab],["kao","kaov",ao]].forEach(([i,t,v])=>{setW(i,pct(v,apor));$(t).textContent=v?brl(v):"—"});
+
+  const km=sum(r,"km"),kv=sum(r,"km_pav");
+  setNum("kk",km);$("kke").textContent=pt(kv,2);$("kkp").textContent=pt(pct(kv,km),0)+"%";setW("kkf",pct(kv,km));
 }
 
 /* ---------- Fontes de recurso: aportado por origem (real) + planejado x pago (aguardando fonte) ---------- */
@@ -133,7 +136,7 @@ function paintLabels(){document.querySelectorAll(".sg[data-lbl]").forEach(s=>{
   s.style.color=((L+.05)/.053>1.05/(L+.05))?"#0b0b0b":"#fff"})}
 function origens(r){
   const apor=sum(r,"apor"),ab=sum(r,"apor_badesc"),ar=sum(r,"apor_brde"),ao=Math.max(0,apor-ab-ar);
-  return{apor,lista:[["BRDE","var(--s2)",ar],["BADESC","var(--s5)",ab],["Origem não informada","var(--axis)",ao]]};
+  return{apor,lista:[["BRDE","var(--s2)",ar],["BADESC","var(--s5)",ab],["Sem financiamento","var(--axis)",ao]]};
 }
 function renderFontes(r){
   const {apor,lista}=origens(r);const sb=$("sb"),ls=$("ls");sb.replaceChildren();ls.replaceChildren();
@@ -186,7 +189,7 @@ const MAPN={};const CANON={};P.forEach(p=>CANON[norm(p.mun)]=p.mun);
     const key=norm(name),n=sv("path",{d,"fill-rule":"evenodd",class:"mun"});g.append(n);MAPN[key]={n,cx,cy,name};
     n.addEventListener("pointerenter",e=>{
       const s=POR_MUN[key];
-      showTip(name,s?[{c:"var(--hit)",v:s.n+(s.n>1?" projetos":" projeto"),n:"no filtro atual"},{c:"var(--hit)",v:brl(s.plan),n:"planejado"},{c:"var(--hit)",v:brl(s.apor),n:"aportado"}]:[{c:"var(--axis)",v:"Sem projeto",n:"no filtro atual"}]);
+      showTip(name,s?[{c:"var(--hit)",v:pt(s.km,2)+" km",n:"planejados ("+s.n+(s.n>1?" projetos":" projeto")+")"},{c:"var(--hit)",v:brl(s.plan),n:"planejado"},{c:"var(--hit)",v:brl(s.apor),n:"aportado"}]:[{c:"var(--axis)",v:"Sem projeto",n:"no filtro atual"}]);
       placeTip(e.clientX+14,e.clientY+14)});
     n.addEventListener("pointermove",e=>placeTip(e.clientX+14,e.clientY+14));
     n.addEventListener("pointerleave",hideTip);
@@ -198,20 +201,20 @@ let POR_MUN={};
 function alternaMun(key){const nome=CANON[key];if(!nome)return;F.m=F.m===nome?"":nome;render()}
 function renderMapa(r){
   POR_MUN={};
-  r.forEach(p=>{const k=norm(p.mun),s=POR_MUN[k]=POR_MUN[k]||{n:0,plan:0,apor:0,nome:p.mun};s.n++;s.plan+=p.plan;s.apor+=p.apor});
+  r.forEach(p=>{const k=norm(p.mun),s=POR_MUN[k]=POR_MUN[k]||{n:0,plan:0,apor:0,km:0,nome:p.mun};s.n++;s.plan+=p.plan;s.apor+=p.apor;s.km+=p.km});
   for(const k in MAPN){MAPN[k].n.classList.toggle("hit",!!POR_MUN[k]);MAPN[k].n.classList.toggle("sel",!!F.m&&norm(F.m)===k)}
   const g=$("bg");g.replaceChildren();const semMapa=[];
   Object.keys(POR_MUN).forEach(k=>{
     const s=POR_MUN[k],m=MAPN[k];if(!m){semMapa.push(s.nome);return}
-    const c=sv("circle",{class:"pt"+(F.m&&norm(F.m)===k?" sel":""),"data-m":k,cx:m.cx,cy:m.cy,r:(4+Math.sqrt(s.n)*2.6).toFixed(1)});
+    const c=sv("circle",{class:"pt"+(F.m&&norm(F.m)===k?" sel":""),"data-m":k,cx:m.cx,cy:m.cy,r:(4+Math.sqrt(s.km)*2.2).toFixed(1)});
     c.addEventListener("click",()=>alternaMun(k));
-    bindTip(c,s.nome,[{c:"var(--hit)",v:s.n+(s.n>1?" projetos":" projeto"),n:"no filtro atual"},{c:"var(--hit)",v:brl(s.plan),n:"planejado"},{c:"var(--hit)",v:brl(s.apor),n:"aportado"}]);g.append(c)});
+    bindTip(c,s.nome,[{c:"var(--hit)",v:pt(s.km,2)+" km",n:"planejados ("+s.n+(s.n>1?" projetos":" projeto")+")"},{c:"var(--hit)",v:brl(s.plan),n:"planejado"},{c:"var(--hit)",v:brl(s.apor),n:"aportado"}]);g.append(c)});
   const w=$("mapwarn");w.hidden=!semMapa.length;w.textContent=semMapa.length?"Sem correspondência no mapa: "+semMapa.join(", ")+".":"";
   const ch=$("chips");ch.replaceChildren();
-  const lista=Object.keys(POR_MUN).sort((a,b)=>POR_MUN[b].plan-POR_MUN[a].plan);
+  const lista=Object.keys(POR_MUN).sort((a,b)=>POR_MUN[b].km-POR_MUN[a].km);
   if(!lista.length)ch.append(el("span","none","Nenhum município no filtro atual."));
   lista.slice(0,24).forEach(k=>{const s=POR_MUN[k],c=el("span","chip");c.tabIndex=0;
-    c.append(el("i"),document.createTextNode(s.nome),el("b","",s.n+(s.n>1?" projetos":" projeto")));
+    c.append(el("i"),document.createTextNode(s.nome),el("b","",pt(s.km,1)+" km"));
     const on=f=>{c.classList.toggle("on",!!f);document.querySelectorAll("#bg .pt").forEach(x=>x.classList.toggle("on",!!f&&x.dataset.m===k))};
     c.addEventListener("pointerenter",()=>on(1));c.addEventListener("pointerleave",()=>on(0));c.addEventListener("focus",()=>on(1));c.addEventListener("blur",()=>on(0));
     c.addEventListener("click",()=>alternaMun(k));ch.append(c)});
@@ -223,7 +226,7 @@ let SORT={k:"nome",d:1};
 document.querySelectorAll("th[data-k]").forEach(th=>{th.tabIndex=0;
   const alt=()=>{const k=th.dataset.k;SORT=SORT.k===k?{k,d:-SORT.d}:{k,d:1};render()};
   th.addEventListener("click",alt);th.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();alt()}})});
-const NUMS=new Set(["plan","conv","apor"]);
+const NUMS=new Set(["plan","conv","apor","km","km_pav"]);
 function renderTabela(r){
   const k=SORT.k,d=SORT.d;
   const rs=[...r].sort((a,b)=>{
@@ -232,19 +235,46 @@ function renderTabela(r){
     return String(a[k]??"").localeCompare(String(b[k]??""),"pt-BR",{numeric:true})*d});
   document.querySelectorAll("th[data-k]").forEach(th=>th.setAttribute("aria-sort",th.dataset.k===k?(d>0?"ascending":"descending"):"none"));
   const tb=$("tb");tb.replaceChildren();
-  if(!rs.length){const tr=el("tr"),td=el("td","empty","Nenhum projeto encontrado. Limpe os filtros para ver todos.");td.colSpan=15;tr.append(td);tb.append(tr)}
+  if(!rs.length){const tr=el("tr"),td=el("td","empty","Nenhum projeto encontrado. Limpe os filtros para ver todos.");td.colSpan=14;tr.append(td);tb.append(tr)}
+  const icone=()=>{const s=sv("svg",{width:15,height:15,viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":2,"stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true"});
+    s.append(sv("path",{d:"M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"}),sv("path",{d:"M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"}));return s};
   rs.forEach(p=>{
     const tr=el("tr"),c0=el("td","nm",p.nome);c0.title=p.nome;
-    const c5=el("td"),pill=el("span","pill"+(p.fin?"":" vazio")),sw=el("i","sw");if(p.fin)sw.style.background=FIN[p.fin];
-    pill.append(sw,document.createTextNode(p.fin||"Não informado"));c5.append(pill);
-    const pend=()=>el("td","pend n","—");const pendL=()=>el("td","pend","—");
-    tr.append(el("td","",p.id),c0,el("td","",p.mun),el("td","",p.assoc),el("td","",p.regiao),c5,el("td","",p.sit),
+    const c3=el("td"),pill=el("span","pill"+(p.fin==="Sem financiamento"||!p.fin?" vazio":"")),sw=el("i","sw");if(p.fin&&FIN[p.fin])sw.style.background=FIN[p.fin];
+    pill.append(sw,document.createTextNode(p.fin||SEM));c3.append(pill);
+    const c4=el("td","sit",p.sit_atual||"–");c4.title=p.sit_atual||"";
+    const cl=el("td");
+    if(p.link&&/^https:\/\//.test(p.link)){const a=el("a","lnk");a.href=p.link;a.target="_blank";a.rel="noopener noreferrer";a.title="Abrir projeto no ProjetaSC";a.setAttribute("aria-label","Abrir projeto "+p.id+" no ProjetaSC");a.append(icone());cl.append(a)}else cl.textContent="–";
+    tr.append(el("td","",p.id),c0,el("td","",p.mun),c3,c4,
+      el("td","n",pt(p.km,2)),el("td","n",pt(p.km_pav,2)),
       el("td","n",brlFull(p.plan)),el("td","n",p.conv?brlFull(p.conv):"–"),el("td","n",p.apor?brlFull(p.apor):"–"),
-      pend(),pend(),pend(),pendL(),pendL());tb.append(tr)});
+      el("td","",p.sgpe||"–"),cl,el("td","",p.assoc),el("td","",p.regiao));tb.append(tr)});
   const tf=$("tf");tf.replaceChildren();
   if(rs.length){const tr=el("tr");const vz=()=>el("td");
-    tr.append(el("td","","Total exibido"),vz(),vz(),vz(),vz(),vz(),vz(),el("td","n",brlFull(sum(rs,"plan"))),el("td","n",brlFull(sum(rs,"conv"))),el("td","n",brlFull(sum(rs,"apor"))),vz(),vz(),vz(),vz(),vz());tf.append(tr)}
+    tr.append(el("td","","Total exibido"),vz(),vz(),vz(),vz(),el("td","n",pt(sum(rs,"km"),2)),el("td","n",pt(sum(rs,"km_pav"),2)),el("td","n",brlFull(sum(rs,"plan"))),el("td","n",brlFull(sum(rs,"conv"))),el("td","n",brlFull(sum(rs,"apor"))),vz(),vz(),vz(),vz());tf.append(tr)}
   $("cnt").textContent=rs.length+" de "+P.length+" projetos exibidos";
+}
+
+/* ---------- Situação atual: distribuição real, clicável ---------- */
+function contaSit(){
+  const c={};P.filter(p=>ok(p,"z")).forEach(p=>{const k=p.sit_atual||"Sem situação informada";c[k]=(c[k]||0)+1});
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+}
+function renderSituacao(){
+  const l=contaSit(),tot=l.reduce((s,x)=>s+x[1],0),max=l.length?l[0][1]:1,box=$("sit");box.replaceChildren();
+  if(!l.length){box.append(el("p","nota","Nenhum projeto no filtro atual."))}
+  l.forEach(([k,v])=>{
+    const b=el("button","sitrow"+(F.z===k?" sel":""));b.type="button";b.setAttribute("aria-pressed",String(F.z===k));
+    const tk=el("div","tk"),i=el("i");i.style.width=pct(v,max)+"%";tk.append(i);
+    const nv=el("span","nv"),nb=el("b","",String(v));nv.append(nb,el("span","",pt(pct(v,tot),0)+"%"));
+    b.append(el("span","tx",k),tk,nv);
+    b.addEventListener("click",()=>{F.z=F.z===k?"":k;render()});
+    bindTip(b,k,[{c:"var(--green)",v:v+(v>1?" projetos":" projeto"),n:pt(pct(v,tot),1)+"% do filtro atual"}]);
+    box.append(b)});
+  const t=el("table","tv"),hr=el("tr");["Situação atual","Projetos","% do total"].forEach((h,i)=>hr.append(el("th",i?"n":"",h)));
+  const th=el("thead");th.append(hr);t.append(th);const tb=el("tbody");
+  l.forEach(([k,v])=>{const q=el("tr");q.append(el("td","",k),el("td","n",String(v)),el("td","n",pt(pct(v,tot),1)+"%"));tb.append(q)});
+  t.append(tb);document.querySelector("#pSit .view-t").replaceChildren(t);
 }
 
 /* ---------- Render único: todos os blocos saem das mesmas linhas filtradas ---------- */
@@ -252,7 +282,7 @@ let primeira=true;
 function render(){
   atualizaOpcoes();
   const r=P.filter(p=>ok(p));
-  renderTopo(r);renderFontes(r);tabelaFontes(r);renderMapa(r);renderTabela(r);
+  renderTopo(r);renderFontes(r);tabelaFontes(r);renderMapa(r);renderSituacao();renderTabela(r);
   if(primeira){primeira=false;requestAnimationFrame(()=>requestAnimationFrame(()=>{root.classList.add("ready");contar()}))}
   else document.querySelectorAll("[data-count]").forEach(n=>{n.textContent=pt(+n.dataset.count,+n.dataset.dec||0)});
 }

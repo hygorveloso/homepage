@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lê as 3 planilhas exportadas e gera dados.json para o painel.
+"""Lê as 4 planilhas exportadas e gera dados.json para o painel.
 
 Uso:  python3 etl.py [pasta_das_planilhas] [saida.json]
 
@@ -34,6 +34,15 @@ def ler(sufixo):
     return f, df
 
 
+def ler_cod(sufixo, coluna_cod):
+    f = achar(sufixo)
+    df = pd.read_excel(f, dtype=str)
+    df.columns = [c.strip() for c in df.columns]
+    df = df[df[coluna_cod].fillna("").str.fullmatch(r"\d+")].copy()
+    df = df.rename(columns={coluna_cod: "Cod. Projeto"})
+    return f, df
+
+
 def num(serie):
     return pd.to_numeric(serie, errors="coerce").fillna(0.0)
 
@@ -41,6 +50,7 @@ def num(serie):
 f1, t1 = ler("tabela1")  # cadastro do projeto
 f2, t2 = ler("tabela2")  # equipe
 f3, t3 = ler("tabela3")  # valores
+f4, t4 = ler_cod("tabela4", "CODIGO_PROJETO")  # financiamento, km, situação atual, SGPe, link
 
 avisos = []
 
@@ -71,6 +81,20 @@ sem_equipe = ids - set(t2["Cod. Projeto"])
 if sem_equipe:
     avisos.append(f"{len(sem_equipe)} projetos sem equipe na tabela2")
 
+esperadas4 = ["Cod. Projeto", "Nome Projeto Completo", "Município", "Financiamento", "KM Planejado",
+              "KM Pavimentado", "$ Planejado", "$ Executado", "Situação Atual", "SGPe", "LINK"]
+falt4 = [c for c in esperadas4 if c not in t4.columns]
+if falt4:
+    sys.exit(f"ERRO: tabela4 sem as colunas {falt4}")
+if t4["Cod. Projeto"].duplicated().any():
+    sys.exit("ERRO: código de projeto duplicado na tabela4")
+t4 = t4[t4["Cod. Projeto"].isin(ids)].copy()
+if ids - set(t4["Cod. Projeto"]):
+    avisos.append(f"{len(ids - set(t4['Cod. Projeto']))} projetos sem linha na tabela4")
+for c in ["KM Planejado", "KM Pavimentado", "$ Planejado", "$ Executado"]:
+    t4[c] = num(t4[c])
+t4 = t4.set_index("Cod. Projeto")
+
 for c in ["VALOR_PLANEJADO", "Valor Conveniado", "Valor aportado", "Aportado - Badesc", "Aportado - BRDE"]:
     t3[c] = num(t3[c])
 t3 = t3.set_index("Cod. Projeto")
@@ -86,14 +110,18 @@ for _, r in t1.iterrows():
     ab = float(v["Aportado - Badesc"]) if v is not None else 0.0
     ar = float(v["Aportado - BRDE"]) if v is not None else 0.0
     outros = round(apor - ab - ar, 2)
-    if ab > 0 and ar > 0:
-        fin = "BRDE e Badesc"
-    elif ar > 0:
-        fin = "BRDE"
-    elif ab > 0:
-        fin = "Badesc"
-    else:
-        fin = None  # financiador ainda não vem da fonte para projetos sem aporte
+    q = t4.loc[cod] if cod in t4.index else None
+    fin4 = (q["Financiamento"] if q is not None else "") or ""
+    fin4 = {"Sem Financiamento": "Sem financiamento"}.get(fin4.strip(), fin4.strip()) or None
+    link = (q["LINK"] if q is not None else None)
+    link = link.strip() if isinstance(link, str) and link.strip().startswith("https://") else None
+    if q is not None:
+        if abs(float(q["$ Planejado"]) - plan) > 0.01:
+            avisos.append(f"projeto {cod}: $ Planejado difere entre tabela3 e tabela4")
+        if abs(float(q["$ Executado"]) - apor) > 0.01:
+            avisos.append(f"projeto {cod}: $ Executado difere do valor aportado")
+        if q["Município"].strip() != r["Município"].strip():
+            avisos.append(f"projeto {cod}: município difere entre tabela1 e tabela4")
     projetos.append({
         "id": cod,
         "nome": r["Nome Projeto Completo"].strip(),
@@ -107,7 +135,13 @@ for _, r in t1.iterrows():
         "apor_badesc": round(ab, 2),
         "apor_brde": round(ar, 2),
         "apor_outros": outros if abs(outros) > 0.01 else 0.0,
-        "fin": fin,
+        "fin": fin4,
+        "km": round(float(q["KM Planejado"]), 3) if q is not None else 0.0,
+        "km_pav": round(float(q["KM Pavimentado"]), 3) if q is not None else 0.0,
+        "exec": round(float(q["$ Executado"]), 2) if q is not None else 0.0,
+        "sit_atual": ((q["Situação Atual"] if q is not None else "") or "").strip(),
+        "sgpe": ((q["SGPe"] if q is not None else "") or "").strip(),
+        "link": link,
     })
 
 equipe = [
@@ -124,10 +158,15 @@ tot = {
     "aportado": round(sum(p["apor"] for p in projetos), 2),
     "aportado_badesc": round(sum(p["apor_badesc"] for p in projetos), 2),
     "aportado_brde": round(sum(p["apor_brde"] for p in projetos), 2),
+    "km_planejado": round(sum(p["km"] for p in projetos), 2),
+    "km_pavimentado": round(sum(p["km_pav"] for p in projetos), 2),
 }
-if any(p["apor_outros"] for p in projetos):
-    n = sum(1 for p in projetos if p["apor_outros"])
-    avisos.append(f"{n} projetos com aportado maior que Badesc + BRDE (origem não identificada)")
+fora = [p["id"] for p in projetos if p["apor_outros"] and p["fin"] != "Sem financiamento"]
+if fora:
+    avisos.append(f"{len(fora)} projetos com aporte fora de BRDE/Badesc mas com financiamento informado: {fora[:5]}")
+sem_link = [p["id"] for p in projetos if not p["link"]]
+if sem_link:
+    avisos.append(f"{len(sem_link)} projetos sem link válido")
 sem_gestor = ids - {e["id"] for e in equipe if e["funcao"].startswith("Gestor do Projeto")}
 if sem_gestor:
     avisos.append(f"{len(sem_gestor)} projeto(s) sem 'Gestor do Projeto - Responsável'")
@@ -135,7 +174,7 @@ if sem_gestor:
 saida = {
     "meta": {
         "gerado_em": datetime.now().astimezone().isoformat(timespec="minutes"),
-        "arquivos": [f1.name, f2.name, f3.name],
+        "arquivos": [f1.name, f2.name, f3.name, f4.name],
         "totais_conferencia": tot,
         "avisos": avisos,
     },
