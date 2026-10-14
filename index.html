@@ -143,6 +143,7 @@ html:not(.ready) .mt .fill,html:not(.ready) .mb .tr i{width:0}
 .chip i{width:10px;height:10px;border-radius:50%;background:var(--hit);flex:none}
 .chip b{font-weight:600;font-variant-numeric:tabular-nums}
 .chip:hover,.chip.on{background:var(--surf2)}
+.chip.more{cursor:pointer;color:var(--ink2);padding:5px 14px;font:inherit;font-size:13px}.chip.more:hover{color:var(--ink)}
 .chips .none{color:var(--mut);font-size:13px}
 
 /* barras */
@@ -721,6 +722,7 @@ const MAPN={};const CANON={};P.forEach(p=>CANON[norm(p.mun)]=p.mun);
 })();
 let POR_MUN={};
 function alternaMun(key){const nome=CANON[key];if(!nome)return;F.m=F.m===nome?"":nome;render()}
+let CHIPS_ABERTO=false;
 function renderMapa(r){
   POR_MUN={};
   r.forEach(p=>{const k=norm(p.mun),s=POR_MUN[k]=POR_MUN[k]||{n:0,plan:0,apor:0,km:0,nome:p.mun};s.n++;s.plan+=p.plan;s.apor+=p.apor;s.km+=p.km});
@@ -735,12 +737,13 @@ function renderMapa(r){
   const ch=$("chips");ch.replaceChildren();
   const lista=Object.keys(POR_MUN).sort((a,b)=>POR_MUN[b].km-POR_MUN[a].km);
   if(!lista.length)ch.append(el("span","none","Nenhum município no filtro atual."));
-  lista.slice(0,24).forEach(k=>{const s=POR_MUN[k],c=el("span","chip");c.tabIndex=0;
+  lista.slice(0,CHIPS_ABERTO?lista.length:5).forEach(k=>{const s=POR_MUN[k],c=el("span","chip");c.tabIndex=0;
     c.append(el("i"),document.createTextNode(s.nome),el("b","",pt(s.km,1)+" km"));
     const on=f=>{c.classList.toggle("on",!!f);document.querySelectorAll("#bg .pt").forEach(x=>x.classList.toggle("on",!!f&&x.dataset.m===k))};
     c.addEventListener("pointerenter",()=>on(1));c.addEventListener("pointerleave",()=>on(0));c.addEventListener("focus",()=>on(1));c.addEventListener("blur",()=>on(0));
     c.addEventListener("click",()=>alternaMun(k));ch.append(c)});
-  if(lista.length>24)ch.append(el("span","none","+ "+(lista.length-24)+" municípios"));
+  if(lista.length>5){const b=el("button","chip more",CHIPS_ABERTO?"Mostrar só os 5 maiores":"+ "+(lista.length-5)+" municípios");b.type="button";b.setAttribute("aria-expanded",String(CHIPS_ABERTO));
+    b.addEventListener("click",()=>{CHIPS_ABERTO=!CHIPS_ABERTO;renderMapa(r)});ch.append(b)}
 }
 
 /* ---------- Tabela de projetos ---------- */
