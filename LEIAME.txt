@@ -1,13 +1,24 @@
-Painel Estrada Boa Rural - como atualizar os dados
+Painel Estrada Boa Rural
 
-1) Exporte as 4 planilhas (tabela1 cadastro, tabela2 equipe, tabela3 valores, tabela4 projetos/km/situação/SGPe) e coloque na pasta entrada/ (nomes contendo tabela1, tabela2, tabela3 e tabela4).
-2) python3 etl.py entrada dados.json     -> lê as planilhas, valida e gera dados.json
-3) python3 build.py                      -> gera painel.html (arquivo único, abre no navegador)
+ARQUIVOS
+  index.html     a página. É o arquivo-fonte: pode ser editado à mão e aberto direto no navegador.
+  etl.py         lê as 4 planilhas da pasta entrada/, valida e gera dados.json
+  atualizar.py   troca só o bloco de dados do index.html pelo conteúdo de dados.json
+  dados.json     dados da última carga (contém nomes da equipe)
+  entrada/       planilhas exportadas (nomes contendo tabela1, tabela2, tabela3 e tabela4)
 
-Trocar planilha por banco: reescreva só o etl.py para ler do banco e gravar o mesmo dados.json.
-O painel não depende de onde o dados.json veio.
+COMO ATUALIZAR OS DADOS
+  1) Coloque as novas planilhas em entrada/
+  2) python3 etl.py entrada dados.json
+  3) python3 atualizar.py
+  O resto do index.html não é tocado, então as suas edições ficam.
+  Trocar planilha por banco: reescreva só o etl.py para ler do banco e gravar o mesmo dados.json.
 
-Pendente (aguardando fonte): etapas pelas quais cada projeto já passou (jornada), valor planejado e pago
-por fonte de recurso, código IBGE do município.
-A confirmar: km executado usa o km pavimentado; valor executado é igual ao valor aportado em todos os projetos.
-Atenção: dados.json contém nomes de pessoas da equipe. Definir com a TI/LGPD antes de publicar.
+EXPORTAR PARA EXCEL
+  Botão no pé da tabela. Exporta os projetos com os filtros e a ordenação atuais (todas as linhas, não só as visíveis).
+  Gera .xlsx no próprio navegador, sem biblioteca e sem internet. A 2ª aba registra os filtros aplicados e a origem dos dados.
+
+PENDENTE (aguardando fonte): etapas pelas quais cada projeto já passou (jornada), valor planejado e pago por fonte
+de recurso, código IBGE do município.
+A CONFIRMAR: km executado usa o km pavimentado; valor executado é igual ao valor aportado em todos os projetos.
+ATENÇÃO: dados.json e o filtro de equipe trazem nomes de pessoas. Definir com a TI/LGPD antes de publicar.
